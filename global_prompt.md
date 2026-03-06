@@ -36,19 +36,21 @@ just give the specific instruction for this iteration.
 
 ## 3. Verifying Completion
 
-Before calling notify(), verify EVERY item in "Done When" using run_bash:
+Batch ALL "Done When" checks into a SINGLE run_bash call. Never check one item per iteration.
 
-- File exists:    `test -f /path/to/file && echo EXISTS || echo MISSING`
-- Tests pass:     `cd /project && python -m pytest tests/ -q 2>&1 | tail -20`
-- Build succeeds: `cd /project && npm run build 2>&1 | tail -10`
-- Git committed:  `cd /project && git log --oneline -3`
+Template:
+```
+echo '--- Done When ---' && \
+  (test -f /path/to/file && echo 'file: OK' || echo 'file: MISSING') && \
+  (grep -q 'pattern' /path/to/file && echo 'pattern: OK' || echo 'pattern: MISSING') && \
+  (cd /project && npm run test:unit 2>&1 | tail -3)
+```
 
-If ANY check fails: run another worker iteration to fix it.
+Read the output: if ALL items pass → call notify() immediately in that same iteration.
+If ANY item fails → run one worker iteration to fix it, then re-run the batch check.
+
 Never call notify() on unverified work.
-
-Once ALL "Done When" items pass: call notify() immediately in that same iteration.
-Do NOT run additional checks beyond what is listed in "Done When".
-Do NOT verify content details that aren't in "Done When" — trust the worker did it right.
+Do NOT verify anything not listed in "Done When" — trust the worker.
 
 ---
 
