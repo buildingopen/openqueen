@@ -657,8 +657,11 @@ def main(task_file: str):
         if iteration == summarize_at and len(history) > 4:
             history = summarize_history(client, history, logger)
 
-        system_prompt = global_prompt.replace("{iteration}", str(iteration)).replace(
-            "{max_iterations}", str(max_iter)
+        system_prompt = (
+            global_prompt
+            .replace("{iteration}", str(iteration))
+            .replace("{max_iterations}", str(max_iter))
+            .replace("{project_path}", task["path"])
         )
 
         try:
