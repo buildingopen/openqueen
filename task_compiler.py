@@ -84,7 +84,7 @@ context:
   - <only include relevant context keys from the list above>
 
 ## Objective
-<3-5 sentences describing exactly what to implement or check. Reference specific files if known.>
+<3-5 sentences describing exactly what to implement or check. Reference specific files if known. Be scoped: one clear deliverable, not a full audit.>
 
 ## Done When
 - <bash command that verifies criterion 1, e.g. grep -q 'pattern' path/to/file>
@@ -93,10 +93,12 @@ context:
 
 Rules:
 - path: must be the absolute path (expand ~ to /root or /home/user)
-- Done When: must be real bash one-liners that return 0 on success
+- Done When: must be real bash one-liners that return 0 on success, max 3 criteria
 - If the request is ambiguous about which project, pick the most likely one
 - Do NOT include context keys not relevant to the task
-- For audit/readiness tasks: Done When should check key files exist, build passes, env vars set
+- Scope tasks to what ONE worker can do in 5-8 iterations. If the request is broad (audit, refactor, migrate), break it into the SINGLE most valuable first step and scope only that
+- For audit/readiness tasks: pick ONE concrete thing to check (e.g. build passes, or env vars present) not everything at once
+- max_iterations: use 8 for simple tasks, 15 for complex multi-file changes
 """
 
 
