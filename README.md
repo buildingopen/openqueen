@@ -1,3 +1,4 @@
+<!-- openqueen-test -->
 # openqueen
 
 Gemini 3.1 Pro orchestrates Claude/Codex workers autonomously on AX41.
