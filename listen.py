@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-openqueen-listen v3 — watches OpenClaw session files for !task triggers.
+openqueen-listen v4 — watches OpenClaw session files for !task triggers.
 
 Two detection methods:
   1. Queue file: /opt/clawdbot/data/openqueen-queue.json (written by clawdbot agent)
@@ -233,7 +233,7 @@ def poll_sessions(state: dict):
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    logger.info("openqueen-listen v3 started")
+    logger.info("openqueen-listen v4 started")
     logger.info(f"Queue file: {QUEUE_FILE}")
     logger.info(f"Sessions dir: {SESSIONS_DIR}")
     logger.info(f"Poll interval: {POLL_INTERVAL}s")
@@ -246,7 +246,6 @@ def main():
 
     while True:
         try:
-            poll_queue()
             poll_sessions(state)
             save_state(state)
         except Exception as e:
