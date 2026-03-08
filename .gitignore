@@ -10,3 +10,6 @@ WORKPLAN-*.md
 projects.json
 .env
 auth/
+context/global/logins.md
+context/global/machines.md
+context/
