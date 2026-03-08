@@ -107,7 +107,7 @@ fi
 if command -v systemctl >/dev/null 2>&1; then
     SYSTEMD_DIR="/etc/systemd/system"
     if [ "$TRANSPORT" = "telegram" ]; then
-        cat > "$SYSTEMD_DIR/openqueen.service" << SVCEOF
+        cat > "$SYSTEMD_DIR/openqueen-listen.service" << SVCEOF
 [Unit]
 Description=OpenQueen — Telegram-controlled coding agent
 After=network.target
@@ -123,7 +123,7 @@ RestartSec=10
 WantedBy=multi-user.target
 SVCEOF
     else
-        cat > "$SYSTEMD_DIR/openqueen.service" << SVCEOF
+        cat > "$SYSTEMD_DIR/openqueen-listen.service" << SVCEOF
 [Unit]
 Description=OpenQueen — WhatsApp-controlled coding agent
 After=network.target
@@ -156,7 +156,7 @@ WantedBy=multi-user.target
 SVCEOF
     fi
     systemctl daemon-reload 2>/dev/null || true
-    info "Systemd services written. Enable with: systemctl enable --now openqueen"
+    info "Systemd services written. Enable with: systemctl enable --now openqueen-listen"
 fi
 
 # ── Run tests to verify install ───────────────────────────────────────────────
@@ -167,10 +167,10 @@ cd "$OLDPWD"
 echo ""
 info "Install complete!"
 if [ "$UPGRADING" = true ]; then
-    echo "  Upgraded — restart services to apply: systemctl restart openqueen"
+    echo "  Upgraded — restart services to apply: systemctl restart openqueen-listen"
 else
     echo "  Next steps:"
 echo "    1. Edit $OQ_HOME/.env and set your GOOGLE_API_KEY"
 echo "    2. Run 'openqueen init' to configure and connect your transport"
-echo "    3. Run 'systemctl enable --now openqueen' to start"
+echo "    3. Run 'systemctl enable --now openqueen-listen' to start"
 fi
