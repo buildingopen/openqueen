@@ -174,13 +174,17 @@ def poll_queue():
 
         if nl:
             logger.info(f"Queue: NL task: {nl[:80]}")
-            task_path = compile_nl_task(nl)
-            if task_path:
-                pid = run_openqueen(task_path)
-                if pid > 0:
-                    send_whatsapp(f"openqueen: started {Path(task_path).name} (PID={pid}). Will notify when done.")
-            else:
-                logger.error("NL compile failed — no task started")
+            # Route through dispatch.py so locking/queuing/monitoring apply
+            try:
+                subprocess.Popen(
+                    ["python3", str(OQ_HOME / "dispatch.py"), nl],
+                    start_new_session=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                logger.info("Routed NL task to dispatch.py")
+            except Exception as e:
+                logger.error(f"Failed to route NL task to dispatch.py: {e}")
         elif task_path:
             logger.info(f"Queue: task_path={task_path}")
             pid = run_openqueen(task_path)
@@ -294,6 +298,16 @@ def _notify_telegram(text: str):
         )
     except Exception as e:
         logger.error(f"Telegram send error: {e}")
+        # Fallback: retry without Markdown (special chars can cause parse errors)
+        try:
+            url = f"https://api.telegram.org/bot{token}/sendMessage"
+            data = json.dumps({"chat_id": chat_id, "text": text}).encode()
+            urllib.request.urlopen(
+                urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}),
+                timeout=10,
+            )
+        except Exception:
+            pass
 
 
 def handle_nl_task(text: str):
@@ -350,6 +364,11 @@ def run_telegram_listener():
             url = f"https://api.telegram.org/bot{token}/getUpdates?offset={offset}&timeout=30"
             with urllib.request.urlopen(url, timeout=35) as r:
                 data = json.loads(r.read())
+
+            if not data.get("ok"):
+                logger.warning("Telegram getUpdates error: %s", data.get("description", str(data)[:100]))
+                time.sleep(5)
+                continue
 
             for update in data.get("result", []):
                 offset = update["update_id"] + 1

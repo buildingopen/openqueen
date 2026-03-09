@@ -13,6 +13,8 @@ import urllib.request
 from pathlib import Path
 import subprocess
 
+OQ_HOME = Path(os.environ.get("OPENQUEEN_HOME", str(Path.home() / "openqueen")))
+
 def _load_config() -> dict:
     cfg_path = OQ_HOME / "config.json"
     try:
@@ -24,10 +26,8 @@ def _load_config() -> dict:
 
 _CONFIG = _load_config()
 LOGS_DIR = Path(_CONFIG["log_dir"])
-OQ_HOME  = LOGS_DIR.parent
 QUEUE_FILE = OQ_HOME / "QUEUE.json"
 SEND_URL = "http://127.0.0.1:19234/send"
-OQ_HOME = Path(os.environ.get("OPENQUEEN_HOME", str(Path.home() / "openqueen")))
 
 
 def send_wa(text: str, image: str = None):
@@ -61,6 +61,16 @@ def send_telegram(text: str):
         )
     except Exception as e:
         print(f"[monitor] send_telegram error: {e}", file=sys.stderr)
+        # Fallback: retry without Markdown (special chars can cause parse errors)
+        try:
+            url = f"https://api.telegram.org/bot{token}/sendMessage"
+            data = json.dumps({"chat_id": chat_id, "text": text}).encode()
+            urllib.request.urlopen(
+                urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}),
+                timeout=10,
+            )
+        except Exception:
+            pass
 
 
 def notify(text: str, image: str = None):
@@ -119,6 +129,7 @@ def dequeue_and_start():
             remaining.append(item)
     if remaining:
         QUEUE_FILE.write_text(json.dumps(remaining, indent=2))
+        QUEUE_FILE.chmod(0o600)
     else:
         QUEUE_FILE.unlink(missing_ok=True)
 

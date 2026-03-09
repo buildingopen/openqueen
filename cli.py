@@ -39,13 +39,20 @@ def cmd_status():
     if queue_file.exists():
         try:
             queue = json.loads(queue_file.read_text())
-            active = {k: v for k, v in queue.items() if v.get("status") in ("running", "queued")}
-            if active:
-                print(f"  Active tasks ({len(active)}):")
-                for proj, info in active.items():
-                    print(f"    {proj}: {info.get('status')} — {info.get('task_name', '?')}")
+            # QUEUE.json is a list (dispatch.py format)
+            if isinstance(queue, list):
+                items = queue
+            elif isinstance(queue, dict):
+                items = list(queue.values())
             else:
-                print("  No active tasks")
+                items = []
+            if items:
+                print(f"  Queued tasks ({len(items)}):")
+                for item in items:
+                    label = item.get("summary") or item.get("task_name", "?")
+                    print(f"    {label}")
+            else:
+                print("  No queued tasks")
         except Exception:
             print("  Could not read queue")
     else:

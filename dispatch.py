@@ -66,6 +66,16 @@ def send_telegram(text: str):
         )
     except Exception as e:
         print(f"[dispatch] send_telegram error: {e}", file=sys.stderr)
+        # Fallback: retry without Markdown (special chars can cause parse errors)
+        try:
+            url = f"https://api.telegram.org/bot{token}/sendMessage"
+            data = json.dumps({"chat_id": chat_id, "text": text}).encode()
+            urllib.request.urlopen(
+                urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}),
+                timeout=10,
+            )
+        except Exception:
+            pass
 
 
 def notify(text: str, image: str = None):
@@ -147,6 +157,7 @@ def enqueue_task(task_file: str, task_name: str, summary: str, project_path: str
         "queued_at": int(time.time()),
     })
     QUEUE_FILE.write_text(json.dumps(queue, indent=2))
+    QUEUE_FILE.chmod(0o600)
 
 
 def dequeue_and_start():
@@ -170,6 +181,7 @@ def dequeue_and_start():
 
     if remaining:
         QUEUE_FILE.write_text(json.dumps(remaining, indent=2))
+        QUEUE_FILE.chmod(0o600)
     else:
         QUEUE_FILE.unlink(missing_ok=True)
 

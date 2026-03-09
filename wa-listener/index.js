@@ -77,15 +77,15 @@ function runDispatch(arg) {
 // ── Write to queue file (standalone mode, no clawdbot) ───────────────────────
 
 function writeToQueue(text) {
-  const key = ;
+  const key = "task-" + Date.now();
   const entry = { [key]: { task_path: null, nl: text, ts: new Date().toISOString() } };
   // Merge with existing queue if present (unlikely but safe)
   let queue = {};
   try { queue = JSON.parse(fs.readFileSync(QUEUE_FILE, "utf8")); } catch (_) {}
   Object.assign(queue, entry);
   fs.mkdirSync(path.dirname(QUEUE_FILE), { recursive: true });
-  fs.writeFileSync(QUEUE_FILE, JSON.stringify(queue, null, 2));
-  console.log();
+  fs.writeFileSync(QUEUE_FILE, JSON.stringify(queue, null, 2), { mode: 0o600 });
+  console.log("[wa-listener] queued: " + text.slice(0, 80));
 }
 
 // ── HTTP send API ─────────────────────────────────────────────────────────────
