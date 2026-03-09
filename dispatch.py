@@ -73,7 +73,7 @@ def notify(text: str, image: str = None):
     if transport == "telegram":
         send_telegram(text)
     else:
-        notify(text, image)
+        send_wa(text, image)
 
 
 
