@@ -107,7 +107,8 @@ const server = http.createServer((req, res) => {
     try {
       const { text, image } = JSON.parse(body);
       if (!sock) throw new Error("Not connected");
-      const jid = replyJid;
+      const jid = GROUP_JID || replyJid;
+      if (!jid) throw new Error("No target JID — set OQ_GROUP_JID");
       if (image && fs.existsSync(image)) {
         await sock.sendMessage(jid, { image: fs.readFileSync(image), mimetype: "image/png", caption: text || "" });
       } else {
@@ -184,7 +185,6 @@ async function connect() {
       if (!GROUP_JID) { console.log(`[wa-listener] OQ_GROUP_JID not set — ignoring`); continue; }
       if (jid !== GROUP_JID) continue;
 
-      replyJid = jid;
 
       // ── Input type filtering ──────────────────────────────────────────────
       const msgType = Object.keys(msg.message)[0];
