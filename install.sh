@@ -140,23 +140,34 @@ WantedBy=multi-user.target
 SVCEOF
         cat > "$SYSTEMD_DIR/openqueen-wa.service" << SVCEOF
 [Unit]
-Description=OpenQueen WhatsApp listener
+Description=OpenQueen WhatsApp listener (Baileys/wa-listener)
 After=network.target
+Wants=network-online.target
+StartLimitIntervalSec=120
+StartLimitBurst=5
 
 [Service]
 Type=simple
+User=$USER
 EnvironmentFile=$OQ_HOME/.env
+Environment=OPENQUEEN_HOME=$OQ_HOME
 WorkingDirectory=$OQ_HOME/wa-listener
-ExecStart=/usr/bin/node $OQ_HOME/wa-listener/index.js
+ExecStart=$(which node) $OQ_HOME/wa-listener/index.js
 Restart=always
-RestartSec=10
+RestartSec=15
+StandardOutput=append:$OQ_HOME/logs/wa-listener.log
+StandardError=append:$OQ_HOME/logs/wa-listener.log
 
 [Install]
 WantedBy=multi-user.target
 SVCEOF
     fi
     systemctl daemon-reload 2>/dev/null || true
-    info "Systemd services written. Enable with: systemctl enable --now openqueen-listen"
+    if [ "$TRANSPORT" = "whatsapp" ]; then
+        info "Systemd services written. Enable with: systemctl enable --now openqueen-listen openqueen-wa"
+    else
+        info "Systemd services written. Enable with: systemctl enable --now openqueen-listen"
+    fi
 fi
 
 # ── Run tests to verify install ───────────────────────────────────────────────
